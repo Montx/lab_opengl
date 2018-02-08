@@ -5,29 +5,14 @@
 
 #include <GLFW/glfw3.h>
 
+#include "Shader.h"
+
 #include "OpenGLTest.h"
 
+namespace lab {
 namespace opengl {
 
-	const char* vertexShaderSource = "#version 330 core\n"
-		"layout ( location = 0 ) in vec3 position;\n"
-		"void main() {\n"
-		"gl_Position = vec4( position.x, position.y, position.z, 1.0 );\n"
-		"}";
-
-	const char* fragmentShaderSource = "#version 330 core\n"
-		"out vec4 color;\n"
-		"void main() {\n"
-		"color = vec4( 1.0f, 0.5f, 0.2f, 1.0f );\n"
-		"}";
-
-	const char* alternateFragmentShaderSource = "#version 330 core\n"
-		"out vec4 color;\n"
-		"void main() {\n"
-		"color = vec4( 1.0f, 1.0f, 0.0f, 1.0f );\n"
-		"}";
-
-	struct GeometryObjects {
+	struct GeometryGLObjects {
 		unsigned int VAO;
 		unsigned int VBO;
 	};
@@ -82,7 +67,7 @@ namespace opengl {
 		return EXIT_SUCCESS;
 	}
 
-	GeometryObjects OpenGLTest::generateGeometryObjects(float *vertices, int length) {
+	GeometryGLObjects OpenGLTest::generateGeometryGLObjects(float *vertices, int length) {
 
 		// Generate Vertex Objects
 		unsigned int VBO, VAO;
@@ -104,8 +89,11 @@ namespace opengl {
 		glBufferData(GL_ARRAY_BUFFER, length, vertices, GL_STATIC_DRAW);
 
 		// Defines Vertex Attributes (Input for shaders)
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
 		glEnableVertexAttribArray(0);
+
+		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+		glEnableVertexAttribArray(1);
 
 		// Bind Element Buffer Object
 		//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
@@ -128,14 +116,14 @@ namespace opengl {
 		return { VAO, VBO };
 	}
 
-	void OpenGLTest::drawTriangle(const GeometryObjects& objects) {
+	void OpenGLTest::drawTriangle(const GeometryGLObjects& objects) {
 		glBindVertexArray(objects.VAO);
 		glDrawArrays(GL_TRIANGLES, 0, 3);
 
 		glBindVertexArray(0);
 	}
 
-	void OpenGLTest::cleanGeometryObjects(const GeometryObjects& objects) {
+	void OpenGLTest::cleanGeometryGLObjects(const GeometryGLObjects& objects) {
 		glDeleteVertexArrays(1, &objects.VAO);
 		glDeleteBuffers(1, &objects.VBO);
 	}
@@ -145,57 +133,11 @@ namespace opengl {
 			return EXIT_FAILURE;
 		}
 
-		int success;
-		char infoLog[512];
-
-		// Vertex Shader
-		unsigned int vertexShader = glCreateShader(GL_VERTEX_SHADER);
-		glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
-		glCompileShader(vertexShader);
-
-		glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success);
-		if (!success) {
-			glGetShaderInfoLog(vertexShader, 512, NULL, infoLog);
-			std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" << infoLog << std::endl;
-		}
-
-		// Fragment Shader
-		unsigned int fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-		glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
-		glCompileShader(fragmentShader);
-
-		glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &success);
-		if (!success) {
-			glGetShaderInfoLog(fragmentShader, 512, NULL, infoLog);
-			std::cout << "ERROR::SHADER::FRAGMENT::COMPILATION_FAILED\n" << infoLog << std::endl;
-		}
-
-		// Shader Program
-		unsigned int shaderProgram = glCreateProgram();
-		glAttachShader(shaderProgram, vertexShader);
-		glAttachShader(shaderProgram, fragmentShader);
-		glLinkProgram(shaderProgram);
-
-		glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
-		if (!success) {
-			glGetProgramInfoLog(shaderProgram, 512, NULL, infoLog);
-			std::cout << "ERROR::SHADER::PROGRAM::LINKING_FAILED\n" << infoLog << std::endl;
-		}
-
-		glDeleteShader(vertexShader);
-		glDeleteShader(fragmentShader);
-
 		// Define Geometry
-		float vertices1[] = {
-			0.5f, 0.5f, 0.0f,
-			0.5f, -0.5f, 0.0f,
-			1.0f, -0.5f, 0.0f
-		};
-
-		float vertices2[] = {
-			-0.5f, 0.5f, 0.0f,
-			-0.5f, -0.5f, 0.0f,
-			-1.0f, -0.5f, 0.0f
+		float vertices[] = {
+			 0.5f, -0.5f, 0.0f,  1.0f, 0.0f, 0.0f, // bottom right
+			-0.5f, -0.5f, 0.0f,  0.0f, 1.0f, 0.0f, // bottom left
+			 0.0f,  0.5f, 0.0f,  0.0f, 0.0f, 1.0f  // top
 		};
 
 		unsigned int indices[] = {
@@ -203,12 +145,12 @@ namespace opengl {
 			1, 2, 3
 		};
 
-		GeometryObjects triangle1 = generateGeometryObjects(vertices1, sizeof(vertices1));
+		GeometryGLObjects triangle = generateGeometryGLObjects(vertices, sizeof(vertices));
 
-		GeometryObjects triangle2 = generateGeometryObjects(vertices2, sizeof(vertices2));
+		Shader shader("lab_opengl/OpenGLTest/shaders/core.vs", "lab_opengl/OpenGLTest/shaders/core.fs");
+		shader.use();
 
-		// Defines Custom Shader Program
-		glUseProgram(shaderProgram);
+		shader.setFloat("horizontalOffset", 0.5f);
 
 		while (!glfwWindowShouldClose(_window)) {
 			glfwPollEvents();
@@ -217,14 +159,12 @@ namespace opengl {
 			glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 			glClear(GL_COLOR_BUFFER_BIT);
 
-			drawTriangle(triangle1);
-			drawTriangle(triangle2);
+			drawTriangle(triangle);
 
 			glfwSwapBuffers(_window);
 		}
 
-		cleanGeometryObjects(triangle1);
-		cleanGeometryObjects(triangle2);
+		cleanGeometryGLObjects(triangle);
 
 		//glDeleteBuffers(1, &triangle1.EBO);
 
@@ -232,4 +172,5 @@ namespace opengl {
 
 		return EXIT_SUCCESS;
 	}
+}
 }

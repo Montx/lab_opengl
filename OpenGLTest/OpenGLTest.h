@@ -2,9 +2,10 @@
 
 struct GLFWwindow;
 
+namespace lab {
 namespace opengl {
 
-	struct GeometryObjects;
+	struct GeometryGLObjects;
 
 	class OpenGLTest {
 	public:
@@ -13,14 +14,15 @@ namespace opengl {
 		int initializeWindow();
 
 		int runTest();
-	
-	private:
-		GeometryObjects generateGeometryObjects(float *vertices, int length);
 
-		void drawTriangle(const GeometryObjects& objects);
-		void cleanGeometryObjects(const GeometryObjects& objects);
+	private:
+		GeometryGLObjects generateGeometryGLObjects(float *vertices, int length);
+
+		void drawTriangle(const GeometryGLObjects& objects);
+		void cleanGeometryGLObjects(const GeometryGLObjects& objects);
 
 		GLFWwindow* _window;
 	};
 
+}
 }
