@@ -147,7 +147,7 @@ namespace opengl {
 
 		GeometryGLObjects triangle = generateGeometryGLObjects(vertices, sizeof(vertices));
 
-		Shader shader("lab_opengl/OpenGLTest/shaders/core.vs", "lab_opengl/OpenGLTest/shaders/core.fs");
+		Shader shader("lab_opengl/shaders/core.vs", "lab_opengl/shaders/core.fs");
 		shader.use();
 
 		shader.setFloat("horizontalOffset", 0.5f);
