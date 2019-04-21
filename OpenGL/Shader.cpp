@@ -1,9 +1,17 @@
 #include "Shader.h"
 
+#include <GL/glew.h>
+
+#include "GLMHeaders.h"
+
+#include <fstream>
+#include <sstream>
+#include <iostream>
+
 namespace lab {
 namespace opengl {
 
-Shader::Shader(const GLchar* vertexPath, const GLchar* fragmentPath) {
+Shader::Shader(const char* vertexPath, const char* fragmentPath) {
 	// Retrive the vertex/fragment source code from filePath
 	std::string vertexCode;
 	std::string fragmentCode;
@@ -71,15 +79,15 @@ Shader::Shader(const GLchar* vertexPath, const GLchar* fragmentPath) {
 	}
 
 	// Shader Program
-	ProgramID = glCreateProgram();
-	glAttachShader(ProgramID, sVertexHandler);
-	glAttachShader(ProgramID, sFragmentHandler);
-	glLinkProgram(ProgramID);
+	mProgramID = glCreateProgram();
+	glAttachShader(mProgramID, sVertexHandler);
+	glAttachShader(mProgramID, sFragmentHandler);
+	glLinkProgram(mProgramID);
 
 	//Print linking erros if any
-	glGetProgramiv(ProgramID, GL_LINK_STATUS, &success);
+	glGetProgramiv(mProgramID, GL_LINK_STATUS, &success);
 	if (!success) {
-		glGetProgramInfoLog(ProgramID, 512, NULL, infoLog);
+		glGetProgramInfoLog(mProgramID, 512, NULL, infoLog);
 		std::cout << "ERROR::SHADER::PROGRAM::LINKING_FAILED\n" << infoLog << std::endl;
 	}
 
@@ -88,19 +96,23 @@ Shader::Shader(const GLchar* vertexPath, const GLchar* fragmentPath) {
 }
 
 void Shader::use() {
-	glUseProgram(ProgramID);
+	glUseProgram(mProgramID);
 }
 
 void Shader::setBool(const std::string& name, bool value) const {
-	glUniform1i(glGetUniformLocation(ProgramID, name.c_str()), static_cast<int>(value));
+	glUniform1i(glGetUniformLocation(mProgramID, name.c_str()), static_cast<int>(value));
 }
 
 void Shader::setInt(const std::string& name, int value) const {
-	glUniform1i(glGetUniformLocation(ProgramID, name.c_str()), value);
+	glUniform1i(glGetUniformLocation(mProgramID, name.c_str()), value);
 }
 
 void Shader::setFloat(const std::string& name, float value) const {
-	glUniform1f(glGetUniformLocation(ProgramID, name.c_str()), value);
+	glUniform1f(glGetUniformLocation(mProgramID, name.c_str()), value);
+}
+
+void Shader::setMatrix(const std::string& name, const glm::mat4& matrix) {
+	glUniformMatrix4fv(glGetUniformLocation(mProgramID, name.c_str()), 1, GL_FALSE, glm::value_ptr(matrix));
 }
 
 }
