@@ -13,11 +13,13 @@ namespace opengl {
 
 	class OpenGlEngine {
 	public:
+
 		GeometryGLObjects generateGeometryGLObjects(float *vertices, int verticesLength, unsigned int* indices, int indiciesLength);
+		GeometryGLObjects generateGeometryGLObjects(float *vertices, int verticesLength);
 
 		void bindTexture(const char* textureFile1, const char* textureFile2);
-		void drawTriangle(const GeometryGLObjects& objects);
-		void drawTriangles(const GeometryGLObjects& objects, int triangles);
+		void drawTriangle(const GeometryGLObjects& objects, int vertices);
+		void drawTriangles(const GeometryGLObjects& objects, int triangles, int vertices);
 		void cleanGeometryGLObjects(const GeometryGLObjects& objects);
 	};
 

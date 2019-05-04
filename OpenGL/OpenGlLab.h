@@ -1,5 +1,7 @@
 #pragma once
 
+#include "GLMHeaders.h"
+
 #include <memory>
 
 struct GLFWwindow;
@@ -17,14 +19,19 @@ namespace opengl {
 
 		int initialize();
 
-		int runTest();
+		int runTest1();
+		int runTest2();
 
 	private:
 		int initializeGLFWWindow();
+		void processInput(GLFWwindow *window);
 
 		std::unique_ptr<OpenGlEngine> mEngine;
 
 		GLFWwindow* mWindow;
+		glm::vec3 mCameraPos;
+		glm::vec3 mCameraFront;
+		glm::vec3 mCameraUp;
 	};
 
 }

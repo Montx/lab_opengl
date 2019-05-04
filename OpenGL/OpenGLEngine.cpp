@@ -59,22 +59,57 @@ namespace opengl {
 		return { VAO, VBO, EBO };
 	}
 
-	void OpenGlEngine::drawTriangle(const GeometryGLObjects& objects) {
+	GeometryGLObjects OpenGlEngine::generateGeometryGLObjects(float *vertices, int verticesLength) {
+		// Generate Vertex Objects
+		unsigned int VBO, VAO;
+
+		glGenVertexArrays(1, &VAO);
+		glGenBuffers(1, &VBO);
+
+		// Bind Vertex Array Object (Interpretation of the geometry)
+		glBindVertexArray(VAO);
+
+		// Bind Vertex Buffer Object
+		glBindBuffer(GL_ARRAY_BUFFER, VBO);
+
+		// Copy buffer data for Buffer 
+		glBufferData(GL_ARRAY_BUFFER, verticesLength, vertices, GL_STATIC_DRAW);
+
+		// Defines Vertex Attributes (Input for shaders)
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+		glEnableVertexAttribArray(0);
+
+		glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+		glEnableVertexAttribArray(1);
+
+		// Unbind Vertex Buffer Object
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+		// Unbind Vertex Array Object
+		glBindVertexArray(0);
+
+		// Define Polygon Draw Mode
+		//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
+		return { VAO, VBO };
+	}
+
+	void OpenGlEngine::drawTriangle(const GeometryGLObjects& objects, int vertices) {
 		glBindVertexArray(objects.VAO);
 		glBindBuffer(GL_ARRAY_BUFFER, objects.VBO);
 
-		glDrawArrays(GL_TRIANGLES, 0, 3);
+		glDrawArrays(GL_TRIANGLES, 0, vertices);
 
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 		glBindVertexArray(0);
 	}
 
-	void OpenGlEngine::drawTriangles(const GeometryGLObjects& objects, int triangles) {
+	void OpenGlEngine::drawTriangles(const GeometryGLObjects& objects, int triangles, int vertices) {
 		glBindVertexArray(objects.VAO);
 		glBindBuffer(GL_ARRAY_BUFFER, objects.VBO);
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, objects.EBO);
 
-		glDrawElements(GL_TRIANGLES, triangles * 3, GL_UNSIGNED_INT, 0);
+		glDrawElements(GL_TRIANGLES, triangles * vertices, GL_UNSIGNED_INT, 0);
 
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
