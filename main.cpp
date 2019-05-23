@@ -8,5 +8,5 @@ int main() {
 	lab::opengl::OpenGlLab lab;
 	lab.initialize();
 
-	return lab.runTest1();
+	return lab.runTest3();
 }

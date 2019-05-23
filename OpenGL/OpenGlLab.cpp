@@ -2,6 +2,7 @@
 
 #include "OpenGLEngine.h"
 #include "Shader.h"
+#include "Camera.h"
 
 #define GLEW_STATIC
 #include <GL/glew.h>
@@ -13,11 +14,101 @@
 namespace lab {
 namespace opengl {
 
-	const int k_width = 800;
-	const int k_height = 600;
+	namespace {
+		float s_verticesPlane[] = {
+			// positions		// colors			// texture coords
+			0.5f,  0.5f, 0.0f,	1.0f, 0.0f, 0.0f,	1.0f, 1.0f,
+			0.5f, -0.5f, 0.0f,	0.0f, 1.0f, 0.0f,	1.0f, 0.0f,
+			-0.5f, -0.5f, 0.0f,  0.0f, 0.0f, 1.0f,   0.0f, 0.0f,
+			-0.5f,  0.5f, 0.0f,  1.0f, 1.0f, 0.0f,   0.0f, 1.0f
+		};
 
-	float deltaTime = 0.0f;
-	float lastFrame = 0.0f;
+		float s_verticesCube[] = {
+			-0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+			0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
+			0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+			0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+			-0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+			-0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+
+			-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+			0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+			0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+			0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+			-0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
+			-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+
+			-0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+			-0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+			-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+			-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+			-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+			-0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+
+			0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+			0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+			0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+			0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+			0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+			0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+
+			-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+			0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
+			0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+			0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+			-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+			-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+
+			-0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+			0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+			0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+			0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+			-0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
+			-0.5f,  0.5f, -0.5f,  0.0f, 1.0f
+		};
+
+		Camera s_camera(glm::vec3(0.0f, 0.0f, 3.0f));
+
+		const int k_width = 800;
+		const int k_height = 600;
+
+		glm::vec3 s_cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
+		glm::vec3 s_cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
+		glm::vec3 s_cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
+
+		float s_deltaTime = 0.0f;
+		float s_lastFrame = 0.0f;
+
+		float s_yaw = -90.0f;
+		float s_pitch = 0.0f;
+
+		float s_lastMouseX = k_width * 0.5f;
+		float s_lastMouseY = k_height * 0.5f;
+
+		float fov = 45.0f;
+
+		bool s_firstMouse = true;
+
+		void scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
+			s_camera.processMouseScroll(yoffset);
+		}
+
+		void mouse_callback(GLFWwindow* window, double xpos, double ypos) {
+			if (s_firstMouse) {
+				s_lastMouseX = xpos;
+				s_lastMouseY = ypos;
+				s_firstMouse = false;
+			}
+
+			float xOffset = xpos - s_lastMouseX;
+			float yOffset = s_lastMouseY - ypos;
+
+			s_lastMouseX = xpos;
+			s_lastMouseY = ypos;
+
+			s_camera.processMouseMovement(xOffset, yOffset, true);
+		}
+	}
 
 	OpenGlLab::~OpenGlLab() = default;
 
@@ -41,6 +132,11 @@ namespace opengl {
 
 		// Declaring window
 		mWindow = glfwCreateWindow(k_width, k_height, "Learn OpenGL", nullptr, nullptr);
+
+		glfwSetInputMode(mWindow, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+
+		glfwSetCursorPosCallback(mWindow, mouse_callback);
+		glfwSetScrollCallback(mWindow, scroll_callback);
 
 		// Setting screenWidth and screenHeight to Real Sizes
 		int screenWidth, screenHeight;
@@ -76,16 +172,20 @@ namespace opengl {
 
 	void OpenGlLab::processInput(GLFWwindow *window)
 	{
-		float cameraSpeed = 2.5f * deltaTime;
+		if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+			glfwSetWindowShouldClose(window, true);
 
 		if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-			mCameraPos += cameraSpeed * mCameraFront;
+			s_camera.processKeyboard(CameraMovement::Forward, s_deltaTime);
+
 		if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-			mCameraPos -= cameraSpeed * mCameraFront;
+			s_camera.processKeyboard(CameraMovement::Backward, s_deltaTime);
+
 		if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-			mCameraPos -= glm::normalize(glm::cross(mCameraFront, mCameraUp)) * cameraSpeed;
+			s_camera.processKeyboard(CameraMovement::Left, s_deltaTime);
+
 		if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-			mCameraPos += glm::normalize(glm::cross(mCameraFront, mCameraUp)) * cameraSpeed;
+			s_camera.processKeyboard(CameraMovement::Right, s_deltaTime);
 	}
 
 	int OpenGlLab::runTest1() {
@@ -94,58 +194,6 @@ namespace opengl {
 		}
 
 		glEnable(GL_DEPTH_TEST);
-
-		float verticesPlane[] = {
-			// positions		// colors			// texture coords
-			0.5f,  0.5f, 0.0f,	1.0f, 0.0f, 0.0f,	1.0f, 1.0f,
-			0.5f, -0.5f, 0.0f,	0.0f, 1.0f, 0.0f,	1.0f, 0.0f,
-		   -0.5f, -0.5f, 0.0f,  0.0f, 0.0f, 1.0f,   0.0f, 0.0f,
-		   -0.5f,  0.5f, 0.0f,  1.0f, 1.0f, 0.0f,   0.0f, 1.0f
-		};
-
-		float verticesCube[] = {
-			-0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
-			0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
-			0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-			0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-			-0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-			-0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
-
-			-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-			0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-			0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-			0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-			-0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
-			-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-
-			-0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-			-0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-			-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-			-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-			-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-			-0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-
-			0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-			0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-			0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-			0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-			0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-			0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-
-			-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-			0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
-			0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-			0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-			-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-			-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-
-			-0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-			0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-			0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-			0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-			-0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
-			-0.5f,  0.5f, -0.5f,  0.0f, 1.0f
-		};
 
 		glm::vec3 cubePositions[] = {
 			glm::vec3(0.0f,  0.0f,  0.0f),
@@ -160,7 +208,7 @@ namespace opengl {
 			glm::vec3(-1.3f,  1.0f, -1.5f)
 		};
 
-		GeometryGLObjects geometry = mEngine->generateGeometryGLObjects(verticesCube, sizeof(verticesCube));
+		GeometryGLObjects geometry = mEngine->generateGeometryGLObjects(s_verticesCube, sizeof(s_verticesCube));
 
 		Shader shader("lab_opengl/shaders/core.vs", "lab_opengl/shaders/core.fs");
 		shader.use();
@@ -170,16 +218,12 @@ namespace opengl {
 
 		mEngine->bindTexture("lab_opengl/Resources/container.jpg", "lab_opengl/Resources/awesomeface.png");
 
-		mCameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
-		mCameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
-		mCameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
-
 		while (!glfwWindowShouldClose(mWindow)) {
 			glfwPollEvents();
 
 			float currentFrame = glfwGetTime();
-			deltaTime = currentFrame - lastFrame;
-			lastFrame = currentFrame;
+			s_deltaTime = currentFrame - s_lastFrame;
+			s_lastFrame = currentFrame;
 
 			processInput(mWindow);
 
@@ -188,10 +232,10 @@ namespace opengl {
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 			glm::mat4 view = glm::mat4(1.0f);
-			view = glm::lookAt(mCameraPos, mCameraPos + mCameraFront, mCameraUp);
+			view = glm::lookAt(s_cameraPos, s_cameraPos + s_cameraFront, s_cameraUp);
 
 			glm::mat4 projection = glm::mat4(1.0f);
-			projection = glm::perspective(glm::radians(45.0f), static_cast<float>(k_width / k_height), 0.1f, 100.0f);
+			projection = glm::perspective(glm::radians(fov), static_cast<float>(k_width / k_height), 0.1f, 100.0f);
 
 			shader.setMatrix("view", view);
 			shader.setMatrix("projection", projection);
@@ -223,59 +267,7 @@ namespace opengl {
 
 		glEnable(GL_DEPTH_TEST);
 
-		float verticesPlane[] = {
-			// positions		// colors			// texture coords
-			0.5f,  0.5f, 0.0f,	1.0f, 0.0f, 0.0f,	1.0f, 1.0f,
-			0.5f, -0.5f, 0.0f,	0.0f, 1.0f, 0.0f,	1.0f, 0.0f,
-			-0.5f, -0.5f, 0.0f,  0.0f, 0.0f, 1.0f,   0.0f, 0.0f,
-			-0.5f,  0.5f, 0.0f,  1.0f, 1.0f, 0.0f,   0.0f, 1.0f
-		};
-
-		float verticesCube[] = {
-			-0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
-			0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
-			0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-			0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-			-0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-			-0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
-
-			-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-			0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-			0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-			0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-			-0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
-			-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-
-			-0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-			-0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-			-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-			-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-			-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-			-0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-
-			0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-			0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-			0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-			0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-			0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-			0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-
-			-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-			0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
-			0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-			0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-			-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-			-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-
-			-0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-			0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-			0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-			0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-			-0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
-			-0.5f,  0.5f, -0.5f,  0.0f, 1.0f
-		};
-
-		GeometryGLObjects geometry = mEngine->generateGeometryGLObjects(verticesCube, sizeof(verticesCube));
+		GeometryGLObjects geometry = mEngine->generateGeometryGLObjects(s_verticesCube, sizeof(s_verticesCube));
 
 		Shader shader("lab_opengl/shaders/core.vs", "lab_opengl/shaders/core.fs");
 		shader.use();
@@ -303,6 +295,60 @@ namespace opengl {
 
 			glm::mat4 model = glm::mat4(1.0f);
 			model = glm::rotate(model, glm::radians(20.0f), glm::vec3(0.5f, 1.0f, 0.0f));
+
+			shader.setMatrix("model", model);
+
+			mEngine->drawTriangle(geometry, 36);
+
+			glfwSwapBuffers(mWindow);
+		}
+
+		mEngine->cleanGeometryGLObjects(geometry);
+
+		glfwTerminate();
+
+		return EXIT_SUCCESS;
+	}
+
+	int OpenGlLab::runTest3() {
+		if (mWindow == nullptr) {
+			return EXIT_FAILURE;
+		}
+
+		glEnable(GL_DEPTH_TEST);
+
+		GeometryGLObjects geometry = mEngine->generateGeometryGLObjects(s_verticesCube, sizeof(s_verticesCube));
+
+		Shader shader("lab_opengl/shaders/core.vs", "lab_opengl/shaders/core.fs");
+		shader.use();
+
+		shader.setInt("texture1", 0);
+		shader.setInt("texture2", 1);
+
+		mEngine->bindTexture("lab_opengl/Resources/container.jpg", "lab_opengl/Resources/awesomeface.png");
+
+		while (!glfwWindowShouldClose(mWindow)) {
+			glfwPollEvents();
+
+			float currentFrame = glfwGetTime();
+			s_deltaTime = currentFrame - s_lastFrame;
+			s_lastFrame = currentFrame;
+
+			processInput(mWindow);
+
+			// Clear Screen
+			glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+			glm::mat4 view = s_camera.getViewMatrix();
+
+			glm::mat4 projection = glm::perspective(glm::radians(s_camera.getZoom()), static_cast<float>(k_width / k_height), 0.1f, 100.0f);
+
+			shader.setMatrix("view", view);
+			shader.setMatrix("projection", projection);
+
+			glm::mat4 model = glm::mat4(1.0f);
+			model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
 
 			shader.setMatrix("model", model);
 

@@ -10,6 +10,7 @@ namespace lab {
 namespace opengl {
 
 	class OpenGlEngine;
+	class Camera;
 
 	class OpenGlLab {
 	public:
@@ -21,17 +22,16 @@ namespace opengl {
 
 		int runTest1();
 		int runTest2();
+		int runTest3();
 
 	private:
 		int initializeGLFWWindow();
+
 		void processInput(GLFWwindow *window);
 
 		std::unique_ptr<OpenGlEngine> mEngine;
 
 		GLFWwindow* mWindow;
-		glm::vec3 mCameraPos;
-		glm::vec3 mCameraFront;
-		glm::vec3 mCameraUp;
 	};
 
 }
