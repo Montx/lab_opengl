@@ -1,0 +1,3 @@
+D:/Projects/lab_opengl/projects/default/CMakeFiles/opengl_lab.dir
+D:/Projects/lab_opengl/projects/default/CMakeFiles/ALL_BUILD.dir
+D:/Projects/lab_opengl/projects/default/CMakeFiles/ZERO_CHECK.dir

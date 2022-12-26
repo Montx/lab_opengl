@@ -1,0 +1,43 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="D:\Projects\lab_opengl\source\OpenGL\Camera.cpp">
+      <Filter>source\OpenGL</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\Projects\lab_opengl\source\OpenGL\GLMTest.cpp">
+      <Filter>source\OpenGL</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\Projects\lab_opengl\source\OpenGL\OpenGLEngine.cpp">
+      <Filter>source\OpenGL</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\Projects\lab_opengl\source\OpenGL\OpenGLUtils.cpp">
+      <Filter>source\OpenGL</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\Projects\lab_opengl\source\OpenGL\OpenGlLab.cpp">
+      <Filter>source\OpenGL</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\Projects\lab_opengl\source\OpenGL\Shader.cpp">
+      <Filter>source\OpenGL</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\Projects\lab_opengl\source\Utils\ImageLoader.cpp">
+      <Filter>source\Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\Projects\lab_opengl\source\main.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="D:\Projects\lab_opengl\CMakeLists.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="source">
+      <UniqueIdentifier>{0F19AEA4-8082-3D57-A959-7BCA757CF601}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\OpenGL">
+      <UniqueIdentifier>{85766020-7443-3CDC-92E6-B608D3C64995}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\Utils">
+      <UniqueIdentifier>{0118AACA-9859-3700-B4D9-568D23E4644D}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

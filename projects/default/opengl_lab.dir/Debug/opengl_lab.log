@@ -1,0 +1,18 @@
+﻿  Building Custom Rule D:/Projects/lab_opengl/CMakeLists.txt
+  Camera.cpp
+D:\Projects\lab_opengl\include\opengl\Camera.h(3,10): fatal  error C1083: Não é possível abrir arquivo incluir: 'glm/glm.hpp': No such file or directory
+  GLMTest.cpp
+D:\Projects\lab_opengl\source\OpenGL\GLMTest.cpp(3,10): fatal  error C1083: Não é possível abrir arquivo incluir: 'glm/glm.hpp': No such file or directory
+  OpenGLEngine.cpp
+D:\Projects\lab_opengl\source\OpenGL\OpenGLEngine.cpp(5,10): fatal  error C1083: Não é possível abrir arquivo incluir: 'GL/glew.h': No such file or directory
+  OpenGLUtils.cpp
+D:\Projects\lab_opengl\source\OpenGL\OpenGLUtils.cpp(1,10): fatal  error C1083: Não é possível abrir arquivo incluir: 'GL/glew.h': No such file or directory
+  OpenGlLab.cpp
+D:\Projects\lab_opengl\include\utils\GLMHeaders.h(3,10): fatal  error C1083: Não é possível abrir arquivo incluir: 'glm/glm.hpp': No such file or directory
+  Shader.cpp
+D:\Projects\lab_opengl\include\utils\GLMHeaders.h(3,10): fatal  error C1083: Não é possível abrir arquivo incluir: 'glm/glm.hpp': No such file or directory
+  ImageLoader.cpp
+D:\Projects\lab_opengl\source\Utils\ImageLoader.cpp(1,10): fatal  error C1083: Não é possível abrir arquivo incluir: 'ImageLoader.h': No such file or directory
+  main.cpp
+D:\Projects\lab_opengl\include\utils\GLMHeaders.h(3,10): fatal  error C1083: Não é possível abrir arquivo incluir: 'glm/glm.hpp': No such file or directory
+  Gerando Código...
